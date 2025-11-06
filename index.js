@@ -1,14 +1,13 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const { connectToMongoDB } = require("./connect");
-const { restrictToLoggedinUserOnly, checkAuth } = require("./middlewares/auth");
+// const { restrictToLoggedinUserOnly, checkAuth } = require("./middlewares/auth");
 const URL = require("./models/url");
 const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
 
 const urlRoute = require("./routes/url");
-const userRoute = require("./routes/user");
 
 const app = express();
 const PORT = 8001;
@@ -57,7 +56,7 @@ app.get("/url/:shortId", async (req, res) => {
   res.redirect(entry.redirectURL);
 });
 
-app.use("/url", restrictToLoggedinUserOnly, urlRoute);
-app.use("/user", userRoute);
+// Remove user auth endpoints and auth guard: URLs are public now
+app.use("/url", urlRoute);
 
 app.listen(PORT, () => console.log(`Server Started at PORT:${PORT}`));
