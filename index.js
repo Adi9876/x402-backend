@@ -17,16 +17,10 @@ connectToMongoDB(
   process.env.MONGODB_URL ?? "mongodb://localhost:27017/short-url"
 ).then(() => console.log("Mongodb connected"));
 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  })
-);
+app.use(cors());
 
 app.get("/", (req, res) => {
   res.json({ ok: true, service: "x402-url-shortener", version: "1.0" });
