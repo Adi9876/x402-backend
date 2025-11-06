@@ -20,15 +20,38 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // Configure CORS to support credentials (cookies) from the frontend
-const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
-app.use(
-  cors({
-    origin: allowedOrigin,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// Normalize allowed origins to avoid trailing-slash mismatches
+const normalizeOrigin = (value) => (value ? value.replace(/\/$/, "") : value);
+const defaultOrigin = "http://localhost:5173";
+const envOrigin = normalizeOrigin(process.env.FRONTEND_ORIGIN);
+const additionalOrigins = (process.env.FRONTEND_ORIGINS || "")
+  .split(",")
+  .map((o) => normalizeOrigin(o.trim()))
+  .filter(Boolean);
+const allowedOrigins = [normalizeOrigin(defaultOrigin)]
+  .concat(envOrigin ? [envOrigin] : [])
+  .concat(additionalOrigins);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser or same-origin requests (no Origin header)
+    if (!origin) return callback(null, true);
+    const isAllowed = allowedOrigins.some((o) => {
+      if (!o) return false;
+      if (o instanceof RegExp) return o.test(origin);
+      return o === normalizeOrigin(origin);
+    });
+    if (isAllowed) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+// Ensure preflight requests are handled for all routes
+app.options("*", cors(corsOptions));
 
 app.get("/", (req, res) => {
   res.json({ ok: true, service: "x402-url-shortener", version: "1.0" });
