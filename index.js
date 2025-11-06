@@ -20,7 +20,16 @@ connectToMongoDB(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(cors());
+// Configure CORS to support credentials (cookies) from the frontend
+const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+app.use(
+  cors({
+    origin: allowedOrigin,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.get("/", (req, res) => {
   res.json({ ok: true, service: "x402-url-shortener", version: "1.0" });

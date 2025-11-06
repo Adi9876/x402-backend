@@ -4,14 +4,14 @@ const { setUser } = require("../service/auth");
 
 async function handleUserSignup(req, res) {
   const { name, email, password } = req.body;
-  
+
   try {
     await User.create({
       name,
       email,
       password,
     });
-    
+
     return res.status(201).json({ message: "User Created !!" });
   } catch (error) {
     return res.status(500).json({ message: "Error creating USer !!" });
